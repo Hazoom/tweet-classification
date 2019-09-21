@@ -1,30 +1,24 @@
-import csv
 import os
-
+import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-
-from ml.modelsaving import get_classes_dictionary, maybe_create_model_dir
 
 
-def save_top_k_features(vectorizer,
+def plot_top_k_features(vectorizer,
                         clf,
-                        model_dir,
-                        label_encoder,
+                        model_path,
                         num_features=10):
-    feature_names = vectorizer.get_feature_names()
-    class_dictionary = get_classes_dictionary(label_encoder)
-    rows = []
-    for class_label, index in class_dictionary.items():
-        feature_array = clf.coef_[index]
-        if not isinstance(feature_array, np.ndarray):
-            feature_array = feature_array.toarray()[0]
-        top_k = np.argsort(feature_array)[-num_features:]
-        rows.append([class_label, [feature_names[j].replace('_', ' ') for j in top_k]])
-    maybe_create_model_dir(model_dir)
-    df_output = pd.DataFrame(data=rows, columns=['Label', 'Features'])
-    df_output.to_csv(os.path.join(model_dir, 'top_k_features.csv'),
-                     sep=',',
-                     encoding='utf-8',
-                     index=False,
-                     quoting=csv.QUOTE_ALL)
+    feature_names = np.array(vectorizer.get_feature_names())
+
+    coefficients = clf.coef_[0].toarray()[0]
+    top_positive_coefficients = np.argsort(coefficients)[-num_features:]
+    top_negative_coefficients = np.argsort(coefficients)[:num_features]
+    top_coefficients = np.hstack([top_negative_coefficients, top_positive_coefficients])
+
+    # Create features plot
+    plt.figure(figsize=(15, 10))
+    plt.tight_layout()
+    colors = ['red' if coef < 0 else 'blue' for coef in coefficients[top_coefficients]]
+    plt.bar(np.arange(2 * num_features), coefficients[top_coefficients], color=colors)
+    plt.xticks(np.arange(0, 2 * num_features), feature_names[top_coefficients], rotation=80, ha='right')
+    plt.title('Important Features - For Non-Marketing', fontsize=18)
+    plt.savefig(os.path.join(model_path, 'important_features.png'))
