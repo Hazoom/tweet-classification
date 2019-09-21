@@ -19,9 +19,9 @@ def save_vectorizer(vect, model_dir: str) -> None:
     pickle.dump(vect, open(os.path.join(model_dir, 'vectorizer.pickle'), 'wb'))
 
 
-def save_model(model, model_type: str, model_dir: str) -> None:
+def save_model(model, model_dir: str) -> None:
     maybe_create_model_dir(model_dir)
-    model_path = os.path.join(model_dir, model_type + '.joblib')
+    model_path = os.path.join(model_dir, 'model.joblib')
     joblib.dump(model, model_path, compress=1)
 
 

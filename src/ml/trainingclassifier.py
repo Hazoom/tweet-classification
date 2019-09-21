@@ -1,4 +1,5 @@
 # pylint: disable=too-many-locals
+import os
 import argparse
 
 import argcomplete
@@ -81,9 +82,10 @@ def train(input_train_csv: str,
     model.fit(x_train_tfidf, vec_y_cat_train)
 
     print("Saving model")
-    modelsaving.save_model(model, model_type, output_dir)
-    modelsaving.save_vectorizer(vectorizer, output_dir)
-    modelsaving.save_label_encoder(label_encoder, output_dir)
+    model_dir = os.path.join(output_dir, model_type)
+    modelsaving.save_model(model, model_dir)
+    modelsaving.save_vectorizer(vectorizer, model_dir)
+    modelsaving.save_label_encoder(label_encoder, model_dir)
 
     print("Predicting training set")
     predicted = model.predict(x_train_tfidf)
@@ -99,15 +101,13 @@ def train(input_train_csv: str,
     accuracy = np.mean(predicted == vec_y_cat_test)
 
     print("Accuracy on test set: {}".format(accuracy))
-    test_labels_set = set(test_df[LABEL_COLUMN].to_list())
-    target_names = [str(class_name) for class_name in label_encoder.classes_ if str(class_name) in test_labels_set]
-
+    target_names = [str(class_name) for class_name in label_encoder.classes_]
     print(classification_report(vec_y_cat_test,
                                 predicted,
                                 target_names=target_names))
 
     print("Saving top K features for each class")
-    # features.save_top_k_features(vectorizer, model, output_dir, label_encoder, k_related_terms)
+    # features.save_top_k_features(vectorizer, model, model_dir, label_encoder, k_related_terms)
 
 
 def main():
