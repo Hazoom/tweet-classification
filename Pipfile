@@ -1,0 +1,30 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[[source]]
+name = "artifactory"
+url = "https://developer:${ARTIFACTORY_PWD}@amenity.jfrog.io/amenity/api/pypi/pypi/simple"
+verify_ssl = true
+
+[packages]
+argcomplete = "*"
+pep8 = "*"
+more-itertools = "*"
+pylint = "*"
+pycodestyle = "*"
+pandas = "*"
+scikit-learn = "*"
+matplotlib = "*"
+seaborn = "*"
+keras = "*"
+tensorflow = "*"
+dill = "*"
+pathos = "*"
+pypeln = "*"
+jupyter = "*"
+pydot = "*"
+
+[requires]
+python_version = "3.6"

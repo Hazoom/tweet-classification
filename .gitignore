@@ -18,6 +18,10 @@ lib/
 lib64/
 parts/
 sdist/
+*.idea
+*.pyc
+.venv/
+layer_build/
 var/
 wheels/
 *.egg-info/
@@ -102,3 +106,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+data/
+
+classifiers/
