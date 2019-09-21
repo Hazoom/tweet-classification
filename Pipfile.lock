@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c421a8761203c0b896280060876a66cb5207cfc57f161c318651279ccc331932"
+            "sha256": "99a8e71f8fe75fc1a305a91da8a35256c9b1c942d844d5fb789299db5179732d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -11,11 +11,6 @@
             {
                 "name": "pypi",
                 "url": "https://pypi.org/simple",
-                "verify_ssl": true
-            },
-            {
-                "name": "artifactory",
-                "url": "https://developer:${ARTIFACTORY_PWD}@amenity.jfrog.io/amenity/api/pypi/pypi/simple",
                 "verify_ssl": true
             }
         ]
