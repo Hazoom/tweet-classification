@@ -15,10 +15,10 @@ def plot_top_k_features(vectorizer,
     top_coefficients = np.hstack([top_negative_coefficients, top_positive_coefficients])
 
     # Create features plot
-    plt.figure(figsize=(15, 10))
+    plt.figure(figsize=(20, 8))
     plt.tight_layout()
     colors = ['red' if coef < 0 else 'blue' for coef in coefficients[top_coefficients]]
     plt.bar(np.arange(2 * num_features), coefficients[top_coefficients], color=colors)
     plt.xticks(np.arange(0, 2 * num_features), feature_names[top_coefficients], rotation=80, ha='right')
     plt.title('Important Features - For Non-Marketing', fontsize=18)
-    plt.savefig(os.path.join(model_path, 'important_features.png'))
+    plt.savefig(os.path.join(model_path, 'important_features.png'), bbox_inches='tight')
