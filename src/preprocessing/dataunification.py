@@ -11,7 +11,7 @@ def create_unified_file(marketing_file: str,
     marketing_df['label'] = ['Marketing'] * len(marketing_df)
 
     non_marketing_df = pd.read_csv(non_marketing_file, delimiter='\t', header=None, names=['id', 'tweet'])
-    non_marketing_df['label'] = ['Not Marketing'] * len(non_marketing_df)
+    non_marketing_df['label'] = ['Non Marketing'] * len(non_marketing_df)
     print(f'No. of Non Marketing tweets: {len(non_marketing_df)}')
 
     unified_df = pd.concat([marketing_df, non_marketing_df], ignore_index=True, sort=['id'])

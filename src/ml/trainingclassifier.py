@@ -11,6 +11,7 @@ from sklearn.metrics import classification_report
 from sklearn.naive_bayes import MultinomialNB, ComplementNB
 from sklearn.preprocessing import LabelEncoder
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import SVC
 
 from ml import modelsaving, features
 
@@ -26,6 +27,8 @@ def _get_model_by_name(model_type: str):
                                    solver='lbfgs',
                                    multi_class='multinomial',
                                    warm_start=True)
+    elif model_type == "SVM":
+        model = SVC(kernel='rbf', gamma='scale')
     elif model_type == "Linear Regression":
         model = LinearRegression()
     elif model_type == "SGD":
@@ -49,7 +52,7 @@ def _get_model_by_name(model_type: str):
 def train(input_train_csv: str,
           input_test_csv: str,
           model_type: str,
-          save_dir: str,
+          output_dir: str,
           k_related_terms: str) -> None:
     print("Reading files")
     train_df = pd.read_csv(input_train_csv)
@@ -74,13 +77,13 @@ def train(input_train_csv: str,
     vectorizer = TfidfVectorizer(ngram_range=(1, 2), lowercase=False, min_df=5)
     x_train_tfidf = vectorizer.fit_transform(x_train)
 
-    print("Trainign")
+    print("Trainig")
     model.fit(x_train_tfidf, vec_y_cat_train)
 
     print("Saving model")
-    modelsaving.save_model(model, model_type, save_dir)
-    modelsaving.save_vectorizer(vectorizer, save_dir)
-    modelsaving.save_label_encoder(label_encoder, save_dir)
+    modelsaving.save_model(model, model_type, output_dir)
+    modelsaving.save_vectorizer(vectorizer, output_dir)
+    modelsaving.save_label_encoder(label_encoder, output_dir)
 
     print("Predicting training set")
     predicted = model.predict(x_train_tfidf)
@@ -96,7 +99,7 @@ def train(input_train_csv: str,
     accuracy = np.mean(predicted == vec_y_cat_test)
 
     print("Accuracy on test set: {}".format(accuracy))
-    test_labels_set = set(test_df['company_id'].to_list())
+    test_labels_set = set(test_df[LABEL_COLUMN].to_list())
     target_names = [str(class_name) for class_name in label_encoder.classes_ if str(class_name) in test_labels_set]
 
     print(classification_report(vec_y_cat_test,
@@ -104,7 +107,7 @@ def train(input_train_csv: str,
                                 target_names=target_names))
 
     print("Saving top K features for each class")
-    features.save_top_k_features(vectorizer, model, save_dir, label_encoder, k_related_terms)
+    # features.save_top_k_features(vectorizer, model, output_dir, label_encoder, k_related_terms)
 
 
 def main():
@@ -116,15 +119,15 @@ def main():
     argument_parser.add_argument("--model", type=str,
                                  help='Model type to train: SVM|Logistic Regression|Linear Regression|Random '
                                       'Forest|Decision Tree',
-                                 default='Logistic Regression',
+                                 default='SVM',
                                  required=False)
-    argument_parser.add_argument("--save-dir", type=str, help='Directory for output', required=True)
+    argument_parser.add_argument("--output-dir", type=str, help='Directory for output', required=True)
     argument_parser.add_argument("--k-related-terms", type=int,
                                  help='Number of related terms to output per company. Default: 10', required=False,
                                  default=10)
     argcomplete.autocomplete(argument_parser)
     args = argument_parser.parse_args()
-    train(args.input_train, args.input_test, args.model, args.save_dir, args.k_related_terms)
+    train(args.input_train, args.input_test, args.model, args.output_dir, args.k_related_terms)
 
 
 if __name__ == '__main__':
