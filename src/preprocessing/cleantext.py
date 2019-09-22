@@ -12,18 +12,24 @@ def clean_tweet(tweet_text: str,
 
     # replace URLs by a single word that represents URL
     cleaned = re.sub(r'((http://www\.|https://www\.|http://|https://)?' +
-                     r'[a-z0-9]+([\-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(/.*)?)', r'url', cleaned)
+                     r'[a-z0-9]+([\-.][a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(/.*)?)', r'url', cleaned)
 
     # remove user tags, like @User1
     if remove_users:
         cleaned = re.sub(r'(@[\w_-]+)', r' ', cleaned)
+
+    # replace all users with a single word to reduce the number of features
+    cleaned = re.sub(r'(@[\w_-]+)', r'user', cleaned)
 
     # Remove hashtags, like #hashtash
     if remove_hashtags:
         cleaned = re.sub(r'(#[\w_-]+)', r' ', cleaned)
 
     # remove bad characters
-    cleaned = re.sub(r'[^a-zA-Z0-9]', r' ', cleaned)
+    cleaned = re.sub(r'[^a-zA-Z0-9#@]', r' ', cleaned)
+
+    # replace all numbers with a single character that represents a number to reduce the number of features
+    cleaned = re.sub(r'[0-9]+', r'0', cleaned)
 
     # remove double spaces
     cleaned = re.sub(r' +', r' ', cleaned)
