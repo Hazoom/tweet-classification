@@ -1,6 +1,7 @@
 import os
 import argparse
 
+import json
 import numpy as np
 import pandas as pd
 import argcomplete
@@ -25,7 +26,9 @@ def load_vectors(file_path: str):
 
 def load_labels(csv_file: str):
     tweets = pd.read_csv(csv_file)
-    return tweets['label'].tolist()
+
+    # convert labels to their matching index
+    return tweets['label'].apply(lambda label: 0 if label == 'Marketing' else 1).tolist()
 
 
 def train(train_file: str, test_file: str,
