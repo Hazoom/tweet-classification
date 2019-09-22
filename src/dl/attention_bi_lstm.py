@@ -89,13 +89,11 @@ def build_model(seq_len: int,
     lstm = Bidirectional(LSTM(hidden_state_dim,
                               return_sequences=True,
                               return_state=True,
-                              recurrent_activation='relu',
                               dropout=.3,
                               recurrent_dropout=.4))(embeddings)
     lstm, forward_h, forward_c, backward_h, backward_c = Bidirectional(LSTM(hidden_state_dim,
                                                                             return_sequences=True,
                                                                             return_state=True,
-                                                                            recurrent_activation='relu',
                                                                             dropout=0.3,
                                                                             recurrent_dropout=.4))(lstm)
     state_h = Concatenate()([forward_h, backward_h])
