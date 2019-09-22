@@ -79,7 +79,6 @@ def train(train_file: str, test_file: str,
 
     print('Evaluating on test set...')
     y_pred = model.predict(x_test)
-    y_pred = np.array([np.argmax(pred) for pred in y_pred])
     accuracy = np.mean(y_pred == y_test)
     print(f'Accuracy on test set: {accuracy}')
     report = classification_report(y_test, y_pred, target_names=['Non Marketing', 'Marketing'])
