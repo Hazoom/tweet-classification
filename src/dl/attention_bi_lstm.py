@@ -10,6 +10,9 @@ from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.callbacks import EarlyStopping
 from tensorflow.python.keras.optimizers import Nadam
 
+from sklearn.metrics import classification_report
+
+
 from dl.attention import Attention
 from preprocessing import textpreprocess
 
@@ -73,6 +76,13 @@ def train(train_file: str, test_file: str,
               callbacks=[early_stopping_callback])
 
     model.save_weights(os.path.join(output_dir, 'attention_bi_lstm_model.h5'))
+
+    test_loss, test_accuracy = model.evaluate(x_test, y_test, verbose=2)
+    print('Test accuracy: %f' % (test_accuracy * 100))
+    y_pred = model.predict(x_test)
+    y_pred = np.array([np.argmax(pred) for pred in y_pred])
+    report = classification_report(y_test, y_pred, labels=['Non Marketing', 'Marketing'])
+    print('Classification Report:\n', report, '\n')
 
 
 def build_model(seq_len: int,
