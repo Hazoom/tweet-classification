@@ -72,9 +72,7 @@ def train(train_file: str, test_file: str,
               validation_split=validation_split,
               callbacks=[early_stopping_callback])
 
-    model.save_weights('attention_bi_lstm_model.h5')
-
-    # model.save(os.path.join(output_dir, 'attention_bi_lstm_model.h5'))
+    model.save_weights(os.path.join(output_dir, 'attention_bi_lstm_model.h5'))
 
 
 def build_model(seq_len: int,
