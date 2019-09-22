@@ -5,7 +5,7 @@ import argcomplete
 import numpy as np
 import pandas as pd
 from tensorflow.python.keras.layers import Concatenate
-from tensorflow.python.keras.layers import Embedding, LSTM, Bidirectional, Input, Dense, TimeDistributed, Flatten
+from tensorflow.python.keras.layers import Embedding, LSTM, Bidirectional, Input, Dense
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.python.keras.optimizers import Nadam
@@ -67,6 +67,9 @@ def train(train_file: str, test_file: str,
         os.path.join(output_dir, 'model_weights_best.hdf5'),
         save_best_only=True)
 
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
     model.fit(x_train, y_train,
               batch_size=batch_size,
               epochs=epochs,
@@ -81,59 +84,25 @@ def build_model(seq_len: int,
                 vocab_size: int,
                 hidden_state_dim: int,
                 learning_rate: float):
-    sequence_input = Input(shape=(seq_len,))
+    sequence_input = Input(shape=(seq_len,), dtype='int32')
     embeddings = Embedding(vocab_size, word_embedding_dim, input_length=seq_len)(sequence_input)
     lstm = Bidirectional(LSTM(hidden_state_dim,
                               return_sequences=True,
                               return_state=True,
+                              recurrent_activation='relu',
                               dropout=.3,
                               recurrent_dropout=.4))(embeddings)
     lstm, forward_h, forward_c, backward_h, backward_c = Bidirectional(LSTM(hidden_state_dim,
                                                                             return_sequences=True,
                                                                             return_state=True,
+                                                                            recurrent_activation='relu',
                                                                             dropout=0.3,
                                                                             recurrent_dropout=.4))(lstm)
     state_h = Concatenate()([forward_h, backward_h])
     attention = Attention(hidden_state_dim * 2)
     context_vector, attention_weights = attention(lstm, state_h)
-    # time_distributed = TimeDistributed(Dense(hidden_state_dim, activation='relu'))(lstm)
-    # flat = Flatten()(time_distributed)
-    # dense_1 = Dense(100, activation='relu')(flat)
     output = Dense(1, activation='sigmoid')(context_vector)
     model = Model(inputs=sequence_input, outputs=output, name="TweetsModel")
-
-    # sequence_input = Input(shape=(seq_len,), dtype='int32')
-    # embedded_sequences = Embedding(vocab_size, word_embedding_dim, input_length=seq_len)(sequence_input)
-    #
-    # lstm = Bidirectional(LSTM
-    #                                      (hidden_state_dim,
-    #                                       dropout=.3,
-    #                                       recurrent_dropout=.4,
-    #                                       return_sequences=True,
-    #                                       return_state=True,
-    #                                       recurrent_activation='relu',
-    #                                       recurrent_initializer='glorot_uniform'),
-    #                                      name="bi_lstm_0")(embedded_sequences)
-    #
-    # lstm, forward_h, forward_c, backward_h, backward_c = Bidirectional(
-    #     LSTM(hidden_state_dim,
-    #                          dropout=0.2,
-    #                          recurrent_dropout=.4,
-    #                          return_sequences=True,
-    #                          return_state=True,
-    #                          recurrent_activation='relu',
-    #                          recurrent_initializer='glorot_uniform'),
-    #     name='bi_lstm_1')(lstm)
-    #
-    # state_h = Concatenate()([forward_h, backward_h])
-    #
-    # # attention = Attention(hidden_state_dim)
-    # #
-    # # context_vector, attention_weights = attention(lstm, state_h)
-    #
-    # output = Dense(1, activation='sigmoid')(lstm)
-
-    # model = keras.Model(inputs=sequence_input, outputs=output, name="TweetsModel")
 
     print(model.summary())
 
