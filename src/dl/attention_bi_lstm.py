@@ -7,7 +7,7 @@ import pandas as pd
 from tensorflow.python.keras.layers import Concatenate
 from tensorflow.python.keras.layers import Embedding, LSTM, Bidirectional, Input, Dense
 from tensorflow.python.keras.models import Model
-from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.python.keras.callbacks import EarlyStopping
 from tensorflow.python.keras.optimizers import Nadam
 
 from dl.attention import Attention
@@ -63,10 +63,6 @@ def train(train_file: str, test_file: str,
                                             patience=1,
                                             verbose=0, mode='auto')
 
-    model_checkpoint = ModelCheckpoint(
-        os.path.join(output_dir, 'model_weights_best.hdf5'),
-        save_best_only=True)
-
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
@@ -74,7 +70,7 @@ def train(train_file: str, test_file: str,
               batch_size=batch_size,
               epochs=epochs,
               validation_split=validation_split,
-              callbacks=[early_stopping_callback, model_checkpoint])
+              callbacks=[early_stopping_callback])
 
     model.save(os.path.join(output_dir, 'attention_bi_lstm_model.h5'))
 
