@@ -1,10 +1,9 @@
-import os
 import argparse
+import os
 
-import json
+import argcomplete
 import numpy as np
 import pandas as pd
-import argcomplete
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.python.keras import Input
@@ -48,6 +47,9 @@ def train(train_file: str, test_file: str,
 
     y_train = load_labels(train_file)
     y_test = load_labels(test_file)
+
+    assert x_train.shape[0] == len(y_train)
+    assert x_test.shape[0] == len(y_test)
 
     model = build_model(x_train.shape[1],
                         word_embedding_dim,
@@ -109,7 +111,7 @@ def build_model(seq_len: int,
 
     output = keras.layers.Dense(1, activation='sigmoid')(context_vector)
 
-    model = keras.Model(inputs=sequence_input, outputs=output)
+    model = keras.Model(inputs=sequence_input, outputs=output, name="TweetsModel")
 
     print(model.summary())
 
