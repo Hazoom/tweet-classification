@@ -77,11 +77,12 @@ def train(train_file: str, test_file: str,
 
     model.save_weights(os.path.join(output_dir, 'attention_bi_lstm_model.h5'))
 
-    test_loss, test_accuracy = model.evaluate(x_test, y_test, verbose=2)
-    print('Test accuracy: %f' % (test_accuracy * 100))
+    print('Evaluating on test set...')
     y_pred = model.predict(x_test)
     y_pred = np.array([np.argmax(pred) for pred in y_pred])
-    report = classification_report(y_test, y_pred, labels=['Non Marketing', 'Marketing'])
+    accuracy = np.mean(y_pred == y_test)
+    print(f'Accuracy on test set: {accuracy}')
+    report = classification_report(y_test, y_pred, target_names=['Non Marketing', 'Marketing'])
     print('Classification Report:\n', report, '\n')
 
 
