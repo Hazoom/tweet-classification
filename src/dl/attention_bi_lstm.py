@@ -80,38 +80,51 @@ def build_model(seq_len: int,
                 vocab_size: int,
                 hidden_state_dim: int,
                 learning_rate: float):
-    sequence_input = Input(shape=(seq_len,), dtype='int32')
-    embedded_sequences = keras.layers.Embedding(vocab_size, word_embedding_dim, input_length=seq_len)(sequence_input)
+    model = keras.models.Sequential()
+    model.add(Input(shape=(seq_len,), dtype='int32'))
+    model.add(keras.layers.Embedding(vocab_size, word_embedding_dim, input_length=seq_len))
+    model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(hidden_state_dim,
+                                                                 dropout=.3,
+                                                                 recurrent_dropout=.4,
+                                                                 recurrent_activation='relu')))
+    model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(hidden_state_dim,
+                                                                 dropout=.2,
+                                                                 recurrent_dropout=.4,
+                                                                 recurrent_activation='relu')))
+    model.add(keras.layers.Dense(1, activation='sigmoid'))
 
-    lstm = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM
-                                         (hidden_state_dim,
-                                          dropout=.3,
-                                          recurrent_dropout=.4,
-                                          return_sequences=True,
-                                          return_state=True,
-                                          recurrent_activation='relu',
-                                          recurrent_initializer='glorot_uniform'),
-                                         name="bi_lstm_0")(embedded_sequences)
+    # sequence_input = Input(shape=(seq_len,), dtype='int32')
+    # embedded_sequences = keras.layers.Embedding(vocab_size, word_embedding_dim, input_length=seq_len)(sequence_input)
+    #
+    # lstm = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM
+    #                                      (hidden_state_dim,
+    #                                       dropout=.3,
+    #                                       recurrent_dropout=.4,
+    #                                       return_sequences=True,
+    #                                       return_state=True,
+    #                                       recurrent_activation='relu',
+    #                                       recurrent_initializer='glorot_uniform'),
+    #                                      name="bi_lstm_0")(embedded_sequences)
+    #
+    # lstm, forward_h, forward_c, backward_h, backward_c = tf.keras.layers.Bidirectional(
+    #     tf.keras.layers.LSTM(hidden_state_dim,
+    #                          dropout=0.2,
+    #                          recurrent_dropout=.4,
+    #                          return_sequences=True,
+    #                          return_state=True,
+    #                          recurrent_activation='relu',
+    #                          recurrent_initializer='glorot_uniform'),
+    #     name='bi_lstm_1')(lstm)
+    #
+    # state_h = Concatenate()([forward_h, backward_h])
+    #
+    # # attention = Attention(hidden_state_dim)
+    # #
+    # # context_vector, attention_weights = attention(lstm, state_h)
+    #
+    # output = keras.layers.Dense(1, activation='sigmoid')(lstm)
 
-    lstm, forward_h, forward_c, backward_h, backward_c = tf.keras.layers.Bidirectional(
-        tf.keras.layers.LSTM(hidden_state_dim,
-                             dropout=0.2,
-                             recurrent_dropout=.4,
-                             return_sequences=True,
-                             return_state=True,
-                             recurrent_activation='relu',
-                             recurrent_initializer='glorot_uniform'),
-        name='bi_lstm_1')(lstm)
-
-    state_h = Concatenate()([forward_h, backward_h])
-
-    attention = Attention(hidden_state_dim)
-
-    context_vector, attention_weights = attention(lstm, state_h)
-
-    output = keras.layers.Dense(1, activation='sigmoid')(context_vector)
-
-    model = keras.Model(inputs=sequence_input, outputs=output, name="TweetsModel")
+    # model = keras.Model(inputs=sequence_input, outputs=output, name="TweetsModel")
 
     print(model.summary())
 
