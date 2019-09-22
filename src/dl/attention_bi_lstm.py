@@ -4,10 +4,11 @@ import os
 import argcomplete
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.python.keras import Input
 from tensorflow.python.keras.layers import Concatenate
+from tensorflow.python.keras.layers import Embedding, LSTM, Bidirectional, Input, Dense, TimeDistributed, Flatten
+from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.python.keras.optimizers import Nadam
 
 from dl.attention import Attention
 from preprocessing import textpreprocess
@@ -57,12 +58,12 @@ def train(train_file: str, test_file: str,
                         hidden_state_dim,
                         learning_rate=learning_rate)
 
-    early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss',
-                                                            min_delta=0,
-                                                            patience=1,
-                                                            verbose=0, mode='auto')
+    early_stopping_callback = EarlyStopping(monitor='val_loss',
+                                            min_delta=0,
+                                            patience=1,
+                                            verbose=0, mode='auto')
 
-    model_checkpoint = keras.callbacks.ModelCheckpoint(
+    model_checkpoint = ModelCheckpoint(
         os.path.join(output_dir, 'model_weights_best.hdf5'),
         save_best_only=True)
 
@@ -80,23 +81,31 @@ def build_model(seq_len: int,
                 vocab_size: int,
                 hidden_state_dim: int,
                 learning_rate: float):
-    model = keras.models.Sequential()
-    model.add(Input(shape=(seq_len,), dtype='int32'))
-    model.add(keras.layers.Embedding(vocab_size, word_embedding_dim, input_length=seq_len))
-    model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(hidden_state_dim,
-                                                                 dropout=.3,
-                                                                 recurrent_dropout=.4,
-                                                                 recurrent_activation='relu')))
-    model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(hidden_state_dim,
-                                                                 dropout=.2,
-                                                                 recurrent_dropout=.4,
-                                                                 recurrent_activation='relu')))
-    model.add(keras.layers.Dense(1, activation='sigmoid'))
+    sequence_input = Input(shape=(seq_len,))
+    embeddings = Embedding(vocab_size, word_embedding_dim, input_length=seq_len)(sequence_input)
+    lstm = Bidirectional(LSTM(hidden_state_dim,
+                              return_sequences=True,
+                              return_state=True,
+                              dropout=.3,
+                              recurrent_dropout=.4))(embeddings)
+    lstm, forward_h, forward_c, backward_h, backward_c = Bidirectional(LSTM(hidden_state_dim,
+                                                                            return_sequences=True,
+                                                                            return_state=True,
+                                                                            dropout=0.3,
+                                                                            recurrent_dropout=.4))(lstm)
+    state_h = Concatenate()([forward_h, backward_h])
+    attention = Attention(hidden_state_dim * 2)
+    context_vector, attention_weights = attention(lstm, state_h)
+    # time_distributed = TimeDistributed(Dense(hidden_state_dim, activation='relu'))(lstm)
+    # flat = Flatten()(time_distributed)
+    # dense_1 = Dense(100, activation='relu')(flat)
+    output = Dense(1, activation='sigmoid')(context_vector)
+    model = Model(inputs=sequence_input, outputs=output, name="TweetsModel")
 
     # sequence_input = Input(shape=(seq_len,), dtype='int32')
-    # embedded_sequences = keras.layers.Embedding(vocab_size, word_embedding_dim, input_length=seq_len)(sequence_input)
+    # embedded_sequences = Embedding(vocab_size, word_embedding_dim, input_length=seq_len)(sequence_input)
     #
-    # lstm = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM
+    # lstm = Bidirectional(LSTM
     #                                      (hidden_state_dim,
     #                                       dropout=.3,
     #                                       recurrent_dropout=.4,
@@ -106,8 +115,8 @@ def build_model(seq_len: int,
     #                                       recurrent_initializer='glorot_uniform'),
     #                                      name="bi_lstm_0")(embedded_sequences)
     #
-    # lstm, forward_h, forward_c, backward_h, backward_c = tf.keras.layers.Bidirectional(
-    #     tf.keras.layers.LSTM(hidden_state_dim,
+    # lstm, forward_h, forward_c, backward_h, backward_c = Bidirectional(
+    #     LSTM(hidden_state_dim,
     #                          dropout=0.2,
     #                          recurrent_dropout=.4,
     #                          return_sequences=True,
@@ -122,13 +131,13 @@ def build_model(seq_len: int,
     # #
     # # context_vector, attention_weights = attention(lstm, state_h)
     #
-    # output = keras.layers.Dense(1, activation='sigmoid')(lstm)
+    # output = Dense(1, activation='sigmoid')(lstm)
 
     # model = keras.Model(inputs=sequence_input, outputs=output, name="TweetsModel")
 
     print(model.summary())
 
-    model.compile(optimizer=keras.optimizers.Nadam(lr=learning_rate),
+    model.compile(optimizer=Nadam(lr=learning_rate),
                   loss='binary_crossentropy',
                   metrics=['accuracy'])
 
