@@ -39,16 +39,19 @@ def predict_tweets(tweets_file: str,
     print(f'Finished {total_length_str} out of {total_length_str}')
 
     # sort results by index
+    print("Sorting results...")
     predictions = sorted(predictions, key=lambda key: key[0])
 
     # take only the prediction
     predictions = [prediction[1] for prediction in predictions]
 
     # add the prediction column
+    print("Add prediction column to dataframe...")
     for (index, row), prediction in zip(tweets_df.iterrows(), predictions):
         tweets_df.loc[index, 'Prediction'] = prediction
 
     # write predictions
+    print("Write results...")
     with open(output_file, 'w+') as out_fp:
         tweets_df.to_csv(out_fp)
 
