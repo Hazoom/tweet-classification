@@ -5,7 +5,7 @@ import argcomplete
 import numpy as np
 import pandas as pd
 from tensorflow.python.keras.layers import Concatenate
-from tensorflow.python.keras.layers import Embedding, LSTM, Bidirectional, Input, Dense
+from tensorflow.python.keras.layers import Embedding, LSTM, Bidirectional, Input, Dense, Dropout
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.callbacks import EarlyStopping
 from tensorflow.python.keras.optimizers import Nadam
@@ -79,8 +79,7 @@ def train(train_file: str, test_file: str,
 
     print('Evaluating on test set...')
     y_pred = model.predict(x_test)
-    accuracy = np.mean(y_pred == y_test)
-    print(f'Accuracy on test set: {accuracy}')
+    y_pred = (y_pred >= 0.5).astype(np.int)
     report = classification_report(y_test, y_pred, target_names=['Non Marketing', 'Marketing'])
     print('Classification Report:\n', report, '\n')
 
@@ -95,18 +94,19 @@ def build_model(seq_len: int,
     lstm = Bidirectional(LSTM(hidden_state_dim,
                               return_sequences=True,
                               return_state=True,
-                              dropout=.3,
+                              dropout=.5,
                               recurrent_dropout=.4))(embeddings)
     lstm, forward_h, forward_c, backward_h, backward_c = Bidirectional(LSTM(hidden_state_dim,
                                                                             return_sequences=True,
                                                                             return_state=True,
-                                                                            dropout=0.3,
+                                                                            dropout=0.5,
                                                                             recurrent_dropout=.4))(lstm)
     state_h = Concatenate()([forward_h, backward_h])
     attention = Attention(hidden_state_dim * 2)
     context_vector, attention_weights = attention(lstm, state_h)
     dense = Dense(100, activation='relu')(context_vector)
-    output = Dense(1, activation='sigmoid')(dense)
+    dropout = Dropout(rate=.3)(dense)
+    output = Dense(1, activation='sigmoid')(dropout)
     model = Model(inputs=sequence_input, outputs=output, name="TweetsModel")
 
     print(model.summary())
