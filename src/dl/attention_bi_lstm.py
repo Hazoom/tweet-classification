@@ -4,7 +4,7 @@ import os
 import argcomplete
 import numpy as np
 import pandas as pd
-from tensorflow.python.keras.layers import Concatenate
+from tensorflow.python.keras.layers import Concatenate, Add
 from tensorflow.python.keras.layers import Embedding, LSTM, Bidirectional, Input, Dense, Dropout
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.callbacks import EarlyStopping
@@ -43,7 +43,7 @@ def train(train_file: str, test_file: str,
           validation_split: float = 0.15,
           learning_rate: float = 0.0005,
           word_embedding_dim: int = 300,
-          hidden_state_dim: int = 128):
+          hidden_state_dim: int = 300):
     x_train = load_vectors(train_vectors_file)
     x_test = load_vectors(test_vectors_file)
 
@@ -101,8 +101,8 @@ def build_model(seq_len: int,
                                                                             return_state=True,
                                                                             dropout=0.5,
                                                                             recurrent_dropout=.4))(lstm)
-    state_h = Concatenate()([forward_h, backward_h])
-    attention = Attention(hidden_state_dim * 2)
+    state_h = Add()([forward_h, backward_h])
+    attention = Attention(hidden_state_dim)
     context_vector, attention_weights = attention(lstm, state_h)
     dense = Dense(100, activation='relu')(context_vector)
     dropout = Dropout(rate=.3)(dense)
