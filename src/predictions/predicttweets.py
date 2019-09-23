@@ -8,7 +8,7 @@ from ml.classifier import Classifier
 
 
 def _get_prediction(classifier, row, index, predicted, total_length_str):
-    prediction = classifier.predict(row['tweet'])
+    prediction = classifier.predict(str(row['tweet']))
 
     predicted.append((index, prediction))
 
