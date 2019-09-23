@@ -104,7 +104,7 @@ def build_model(seq_len: int,
                                                                             recurrent_dropout=.4))(lstm)
     state_h = Concatenate()([forward_h, backward_h])
     attention = Attention(hidden_state_dim * 2)
-    context_vector, attention_weights = attention(state_h)
+    context_vector, attention_weights = attention(lstm, state_h)
     dense = Dense(100, activation='relu')(context_vector)
     output = Dense(1, activation='sigmoid')(dense)
     model = Model(inputs=sequence_input, outputs=output, name="TweetsModel")
