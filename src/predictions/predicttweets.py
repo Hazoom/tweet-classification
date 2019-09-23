@@ -18,11 +18,12 @@ def _get_prediction(classifier, row, index, predicted, total_length_str):
 
 def predict_tweets(tweets_file: str,
                    output_file: str,
-                   classifier_dir: str) -> None:
+                   classifier_dir: str,
+                   limit: int) -> None:
     print('Reading file...')
     tweets_df = pd.read_csv(open(tweets_file, 'rU'), encoding='utf-8', engine='c', delimiter='\t',
                             header=None, names=['id', 'tweet'])
-    tweets_df = tweets_df.head(1000000)
+    tweets_df = tweets_df.head(limit)
     print(f'No. of tweets: {len(tweets_df)}')
 
     classifier = Classifier(classifier_dir)
@@ -47,8 +48,7 @@ def predict_tweets(tweets_file: str,
 
     # add the prediction column
     print("Add prediction column to dataframe...")
-    for (index, row), prediction in zip(tweets_df.iterrows(), predictions):
-        tweets_df.loc[index, 'Prediction'] = prediction
+    tweets_df['Prediction'] = predictions
 
     # write predictions
     print("Write results...")
@@ -61,9 +61,11 @@ def main():
     argument_parser.add_argument("--tweets-file", type=str, help='Tweets TXT file', required=True)
     argument_parser.add_argument("--output-file", type=str, help='Output titles txt', required=True)
     argument_parser.add_argument("--classifier-dir", type=str, help='Classifier directory', required=True)
+    argument_parser.add_argument("--limit", type=str, help='Limit for tweets', required=False,
+                                 default=100000)
     argcomplete.autocomplete(argument_parser)
     args = argument_parser.parse_args()
-    predict_tweets(args.tweets_file, args.output_file, args.classifier_dir)
+    predict_tweets(args.tweets_file, args.output_file, args.classifier_dir, args.limit)
 
 
 if __name__ == '__main__':
