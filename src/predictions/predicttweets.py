@@ -22,6 +22,7 @@ def predict_tweets(tweets_file: str,
     print('Reading file...')
     tweets_df = pd.read_csv(open(tweets_file, 'rU'), encoding='utf-8', engine='c', delimiter='\t',
                             header=None, names=['id', 'tweet'])
+    tweets_df = tweets_df.head(1000000)
     print(f'No. of tweets: {len(tweets_df)}')
 
     classifier = Classifier(classifier_dir)
