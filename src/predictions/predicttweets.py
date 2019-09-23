@@ -1,8 +1,19 @@
 import argparse
 import pandas as pd
 import argcomplete
+from pathos.multiprocessing import cpu_count
+from pypeln import thread as th
 
 from ml.classifier import Classifier
+
+
+def _get_prediction(classifier, row, index, predicted, total_length_str):
+    prediction = classifier.predict(row['tweet'])
+
+    predicted.append((index, prediction))
+
+    if index % 1000 == 0 and index > 0:
+        print(f'Finished {str(index)} out of {total_length_str}')
 
 
 def predict_tweets(tweets_file: str,
@@ -14,6 +25,31 @@ def predict_tweets(tweets_file: str,
     print(f'No. of tweets: {len(tweets_df)}')
 
     classifier = Classifier(classifier_dir)
+
+    # predict tweets with multiple threads
+    cpu_cores = cpu_count()
+    predictions = []
+    total_length_str = str(len(tweets_df))
+    (tweets_df.iterrows()
+     | th.each(lambda x: _get_prediction(classifier, x[1], x[0], predictions, total_length_str),
+               workers=cpu_cores, maxsize=0)
+     | list)
+
+    print(f'Finished {total_length_str} out of {total_length_str}')
+
+    # sort results by index
+    predictions = sorted(predictions, key=lambda key: key[0])
+
+    # take only the prediction
+    predictions = [prediction[1] for prediction in predictions]
+
+    # add the prediction column
+    for (index, row), prediction in zip(tweets_df.iterrows(), predictions):
+        tweets_df.loc[index, 'Prediction'] = prediction
+
+    # write predictions
+    with open(output_file, 'w+') as out_fp:
+        tweets_df.to_csv(out_fp)
 
 
 def main():

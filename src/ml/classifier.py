@@ -20,5 +20,6 @@ class Classifier:
 
     def predict(self, x_test):
         x_test = cleantext.clean_tweet(x_test)
-        vectorizerd_text = self.vectorizer.transform(x_test)
-        return self.model.predict(vectorizerd_text)
+        vectorizerd_text = self.vectorizer.transform([x_test])
+        prediction = self.model.predict(vectorizerd_text)[0]
+        return self.decoder_dict[prediction]
