@@ -53,7 +53,7 @@ def predict_tweets(tweets_file: str,
     # write predictions
     print("Write results...")
     with open(output_file, 'w+') as out_fp:
-        tweets_df.to_csv(out_fp)
+        tweets_df.to_csv(out_fp, sep='\t', header=False, index=False)
 
 
 def main():
